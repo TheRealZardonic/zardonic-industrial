@@ -113,9 +113,9 @@ JSON import copies `storage_path` + leftover `*_url` values — not R2 objects. 
 
 `/admin/data` → **Match files in current R2 bucket** lists the live bucket, then updates rows when the filename **or content hash** uniquely matches (exact key → suffix → unique basename → content hash). Content-hash matching reconnects rows that changed prefix **and** basename; ambiguous names are skipped. Host-only rewrite remains as a fallback when keys did not change. The reconcile also **backfills the `content_hash` columns** on media tables so future lookups are O(1) by hash.
 
-Runs **automatically on each Vercel Production deploy** (once per git SHA) via `instrumentation.ts` + `lib/r2-reconcile-on-deploy.ts`. Preview / local / CI builds skip it. Manual: `/admin/data` → Match files. Confirm `R2_PUBLIC_HOST` is the new origin on `/admin/health` first.
+R2 reconciliation is **manual only** through the authenticated `/admin/data` dry-run and explicit Apply. Verify `R2_PUBLIC_HOST` on `/admin/health` first. No production startup hook or background mutation is allowed.
 
-**No cron required (Vercel free tier).** Deploys run the reconcile at serverless boot; `/api/media-fix` (called by the client `<img onError>` fallback) self-heals a miss on the fly. The old `*/20 * * * *` cron was removed because Vercel Cron Jobs require Pro. `CRON_SECRET` only matters if you keep the optional GitHub `deployment_status` → `POST /api/r2-reconcile` hook.
+**No cron required (Vercel free tier).** Deploys do not run reconciliation; `/api/media-fix` (called by the client `<img onError>` fallback) self-heals a miss on the fly. The old `*/20 * * * *` cron was removed because Vercel Cron Jobs require Pro. `CRON_SECRET` only matters if you keep the optional GitHub `deployment_status` → `POST /api/r2-reconcile` hook.
 
 Logic: `lib/r2-inventory.ts`, `lib/r2-reconcile.ts`, `lib/media-fallback.ts`, `app/api/media-fix/route.ts`.
 

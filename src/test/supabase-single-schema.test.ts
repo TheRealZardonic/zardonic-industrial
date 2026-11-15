@@ -38,8 +38,9 @@ describe('single canonical Supabase schema', () => {
     expect(pkg.scripts).not.toHaveProperty('migrate')
     expect(pkg.scripts).not.toHaveProperty('migrate-legacy')
 
-    const boot = readFileSync(join(root, 'instrumentation.ts'), 'utf8')
-    expect(boot).not.toContain('runProductionDeployLegacyUrlMigration')
-    expect(boot).toContain('runProductionDeployR2Reconcile')
+    // No maintenance executor can be triggered on cold starts.
+    expect(existsSync(join(root, 'instrumentation.ts'))).toBe(false)
+    expect(existsSync(join(root, 'lib/r2-reconcile-on-deploy.ts'))).toBe(false)
+    expect(existsSync(join(root, 'lib/legacy-url-migration-on-deploy.ts'))).toBe(false)
   })
 })

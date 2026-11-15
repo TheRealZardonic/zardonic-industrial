@@ -3,6 +3,8 @@ import { createAdminClient } from '@/lib/supabaseAdmin'
 import { AdminPageHeader } from '@/app/admin/_components/AdminPageHeader'
 import { AnalyticsSettings } from './AnalyticsSettings'
 import { AnalyticsDashboard } from './AnalyticsDashboard'
+import { checkAdminReadError, loadAdminData } from '@/lib/admin-read-state'
+import { AdminDataUnavailable } from '@/app/admin/_components/AdminDataUnavailable'
 import {
   buildAnalyticsInsights,
   type AnalyticsEventRow,
@@ -29,7 +31,6 @@ interface ContentCounts {
 }
 
 async function fetchCounts(): Promise<ContentCounts> {
-  try {
     const supabase = await createClient()
     const [r, g, gal, p, s, sl] = await Promise.all([
       supabase.from('releases').select('id', { count: 'exact', head: true }),
@@ -43,6 +44,10 @@ async function fetchCounts(): Promise<ContentCounts> {
         .is('unsubscribed_at', null),
       supabase.from('social_links').select('id', { count: 'exact', head: true }),
     ])
+    for (const [name, result] of [
+      ['releases', r], ['gigs', g], ['gallery', gal], ['partners', p],
+      ['newsletter_subscribers', s], ['social_links', sl],
+    ] as const) checkAdminReadError(result.error, 'analytics ' + name)
     return {
       releases: r.count ?? 0,
       gigs: g.count ?? 0,
@@ -51,23 +56,16 @@ async function fetchCounts(): Promise<ContentCounts> {
       subscribers: s.count ?? 0,
       socialLinks: sl.count ?? 0,
     }
-  } catch {
-    return { releases: 0, gigs: 0, gallery: 0, partners: 0, subscribers: 0, socialLinks: 0 }
-  }
 }
 
 async function fetchAnalyticsConfig(): Promise<Record<string, unknown>> {
-  try {
-    const supabase = await createClient()
-    const { data } = await supabase.from('site_config').select('value').eq('key', 'analytics').single()
-    return (data?.value as Record<string, unknown>) ?? {}
-  } catch {
-    return {}
-  }
+  const supabase = await createClient()
+  const { data, error } = await supabase.from('site_config').select('value').eq('key', 'analytics').maybeSingle()
+  checkAdminReadError(error, 'analytics config')
+  return (data?.value as Record<string, unknown>) ?? {}
 }
 
 async function fetchAnalyticsEvents(): Promise<AnalyticsEventRow[]> {
-  try {
     const since = new Date()
     since.setUTCDate(since.getUTCDate() - RANGE_DAYS)
 
@@ -80,10 +78,7 @@ async function fetchAnalyticsEvents(): Promise<AnalyticsEventRow[]> {
       .order('created_at', { ascending: false })
       .limit(MAX_EVENTS)
 
-    if (error) {
-      console.warn('[admin/analytics] fetch events:', error.message)
-      return []
-    }
+    checkAdminReadError(error, 'analytics events')
 
     return (data ?? []).map((row: {
       id: string
@@ -100,18 +95,16 @@ async function fetchAnalyticsEvents(): Promise<AnalyticsEventRow[]> {
       heatmap: (row.heatmap as AnalyticsEventRow['heatmap']) ?? null,
       created_at: String(row.created_at),
     }))
-  } catch (e) {
-    console.warn('[admin/analytics] fetch failed', e)
-    return []
-  }
 }
 
 export default async function AnalyticsPage() {
-  const [counts, analyticsConfig, events] = await Promise.all([
+  const loaded = await loadAdminData('analytics', () => Promise.all([
     fetchCounts(),
     fetchAnalyticsConfig(),
     fetchAnalyticsEvents(),
-  ])
+  ]))
+  if (!loaded.ok) return <AdminDataUnavailable title="Analytics" href="/admin/analytics" />
+  const [counts, analyticsConfig, events] = loaded.data
 
   const insights = buildAnalyticsInsights(events, RANGE_DAYS)
 

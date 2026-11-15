@@ -1,3 +1,24 @@
+## 2026-11-15 — Canonical public release data
+
+Homepage and discography previously duplicated release SELECT queries and guessed database schemas from an error message. The complete projection now lives in `lib/public-fetch.ts` and matches `supabase/schema.sql`. A failed query throws instead of pretending releases are empty; discography displays an explicit unavailable state. Public home keeps its existing degraded shell and logs failure. Manual QA must confirm matching release cards across routes.
+
+
+## 2026-11-15 — Distinguish failed admin reads from empty content
+
+Look & Feel, Section Visibility & Order, Biography and Analytics previously caught read failures and mounted empty editable defaults or presented fabricated zero metrics. They now use a shared typed result contract (`lib/admin-read-state.ts`) and show a non-editable unavailable state. A successful empty row retains the expected defaults. Regression tests cover returned PostgREST errors and thrown backend failures.
+
+## 2026-11-15 — Local-only sign-out on normal admin and recovery flows
+
+The routine POST admin logout and successful password recovery cleanup now revoke only the current Supabase session. This avoids revoking independent OAuth/MCP and other device refresh tokens. Ordinary GET logout remains side-effect-free. Confirm multi-device behavior in authenticated browser QA.
+
+---
+
+## 2026-11-15 — Manual R2 reconciliation replaces deployment-startup maintenance
+
+The original startup hook ran full bucket inventory and database rewrites during a serverless production cold start. That can repeat and can fail during unrelated Supabase reads. The hook, deploy-state code and its unit test are removed. The existing authenticated `/admin/data` preview/apply and POST-only API remain the supported path. Historical notes below describe superseded behavior.
+
+---
+
 # Lessons Learned Log — Zardonic Industrial
 
 > **Last Updated:** 2026-11-06  

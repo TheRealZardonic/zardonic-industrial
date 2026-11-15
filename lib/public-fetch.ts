@@ -20,47 +20,21 @@ export interface PublicReleaseCardItem {
   overlayRelease: Release
 }
 
-export async function fetchPublicReleaseRows(): Promise<ReleaseDbRow[]> {
-  const supabase = createPublicClient()
-  const fullSelect =
-    'id, title, type, release_date, description, cover_storage_path, cover_url, streaming_links, artists, tracks, custom_links, manually_edited'
-  const legacySelect =
-    'id, title, type, release_date, cover_storage_path, cover_url, streaming_links, manually_edited'
-  const minimalSelect =
-    'id, title, type, release_date, cover_storage_path, cover_url, streaming_links'
-
+/** Canonical release projection backed by supabase/schema.sql. No schema guessing. */
+export async function fetchPublicReleaseRows(
+  supabase: ReturnType<typeof createPublicClient> = createPublicClient(),
+): Promise<ReleaseDbRow[]> {
   const { data, error } = await supabase
     .from('releases')
-    .select(fullSelect)
+    .select('id, title, type, release_date, description, cover_storage_path, cover_url, streaming_links, artists, tracks, custom_links, manually_edited')
     .eq('active', true)
     .order('display_order', { ascending: true })
 
-  if (!error) return (data ?? []) as ReleaseDbRow[]
-
-  console.error('[fetchPublicReleaseRows] releases query failed:', error.message)
-
-  const fallbackSelect = error.message.includes('manually_edited') ? minimalSelect : legacySelect
-  const { data: fallbackData, error: fallbackError } = await supabase
-    .from('releases')
-    .select(fallbackSelect)
-    .eq('active', true)
-    .order('display_order', { ascending: true })
-
-  if (fallbackError) {
-    console.error('[fetchPublicReleaseRows] releases fallback query failed:', fallbackError.message)
-    return []
+  if (error) {
+    console.error('[fetchPublicReleaseRows] query failed:', error.message)
+    throw new Error('Public releases unavailable', { cause: error })
   }
-
-  // Dynamic select strings are not const-literal-parsed by supabase-js generics
-  const rows = (fallbackData ?? []) as Partial<ReleaseDbRow>[]
-  return rows.map((row) => ({
-    ...(row as ReleaseDbRow),
-    description: null,
-    artists: [],
-    tracks: [],
-    custom_links: [],
-    manually_edited: 'manually_edited' in row ? !!row.manually_edited : false,
-  }))
+  return (data ?? []) as ReleaseDbRow[]
 }
 
 export function mapReleaseRowsToCardItems(rows: ReleaseDbRow[]): PublicReleaseCardItem[] {

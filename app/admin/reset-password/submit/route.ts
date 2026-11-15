@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     return NextResponse.redirect(invalid, 303)
   }
   // End the recovery session, so the next step is a normal password sign-in.
-  await supabase.auth.signOut()
+  await supabase.auth.signOut({ scope: 'local' })
   response.headers.set('Cache-Control', 'private, no-store')
   return response
 }

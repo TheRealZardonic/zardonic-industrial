@@ -10,7 +10,7 @@ import { createActionClient } from '@/lib/supabaseServer'
 async function handleLogout(request: Request) {
   if (request.method === 'POST') {
     const supabase = await createActionClient()
-    await supabase.auth.signOut()
+    await supabase.auth.signOut({ scope: 'local' })
   }
   redirect('/admin/login')
 }

@@ -46,7 +46,7 @@ Update this file when user-visible flows change (`docs/agent/workflow.md`).
 - [ ] Network: no request to fonts.googleapis.com / fonts.gstatic.com on cold load
 - [ ] Analytics Reject â†’ no POST /api/analytics; Accept â†’ events only after consent
 - [ ] Background: video ON â†’ no static bg image layer under video; video OFF â†’ image with opacity
-- [ ] After an R2 bucket move / Production deploy: Vercel logs show `[r2-reconcile] run for <sha>` then `done`; `/admin/data` preview can confirm. Network has no `wsrv.nl/?url=https://pub-<OLD>.r2.dev`; partner rasters may still use wsrv but the inner host is the current `R2_PUBLIC_HOST`
+- [ ] After an R2 bucket move, manually preview `/admin/data` without writes and explicitly Apply as admin. No boot-time reconciliation should occur.
 - [ ] Background video: scroll scrub stays smooth; no matrix/circuit canvas running on top of the video
 - [ ] Background: desktop video ON + mobile â€œNo videoâ€ â†’ video on desktop, image fallback on phone
 - [ ] Background video and `/admin/media` uploads succeed on a fresh origin; if they fail with `net::ERR_FAILED` / "failed to fetch", confirm the **R2 bucket CORS** row in Admin â†’ API Health is OK (browser presigned PUT needs a bucket CORS rule â€” see `r2-cors.json`)
@@ -91,7 +91,7 @@ Update this file when user-visible flows change (`docs/agent/workflow.md`).
 - [ ] Bulk import: uploaded logos land in R2 (`partners/logos`), pasted logo URLs are cached to R2, and the new entries appear on the public site after revalidate
 - [ ] Media replace: upload a second image/video â†’ previous R2 object removed (status mentions previous file removed); failed upload must not delete the old file
 - [ ] R2 keys are content-addressed: uploading the same file twice lands on the same object key (no orphaned duplicate); replacing with different bytes creates a new key and deletes the old one
-- [ ] After an R2 bucket move / Production deploy: `[r2-reconcile] done objects=â€¦ rows=â€¦ urls=â€¦` in Vercel logs; `/admin/data` preview shows corrected URLs; `content_hash` backfilled on media rows. A deliberately-broken old URL is auto-repaired by the `<img onError>` â†’ `/api/media-fix` path (the image swaps to the corrected URL)
+- [ ] After an R2 bucket move, manually preview `/admin/data` without writes and explicitly Apply as admin. No boot-time reconciliation should occur.
 - [ ] Legal admin saves and public pages reflect changes after revalidate
 - [ ] Data export JSON includes news posts, manually edited releases (tracks/copy), and site_config keys; import restores them without wiping extra rows
 - [ ] Release list Type column shows four buttons (**Single / Remix / Album / Appears On**), only one active per row; clicking saves immediately (optimistic), the row is marked manually edited (survives "Fix release types"), and the public badge updates after refresh
@@ -164,3 +164,15 @@ Update this file when user-visible flows change (`docs/agent/workflow.md`).
 - [ ] Factory reset rejects sessions without MFA AAL2.
 - [ ] Production CSP excludes unsafe-eval, and public pages hydrate normally.
 - [ ] Resend failure is reported as failure, not as successfully delivered mail.
+
+## 2026-11-15 admin data reliability
+
+- [ ] Simulate Supabase errors for Look & Feel, Sections, Bio and Analytics. Show a non-editable error instead of blank editors or zero metrics.
+- [ ] Legitimate missing configuration rows render editable defaults without errors.
+- [ ] After recovery, values load without overwritten persisted content.
+
+## 2026-11-15 public release regression
+
+- [ ] Successful empty release query shows an actually empty catalogue.
+- [ ] Failed releases read shows explicit unavailable state on `/releases`; never a fabricated empty list.
+- [ ] Homepage and browse share complete release projection including metadata and cover fields.

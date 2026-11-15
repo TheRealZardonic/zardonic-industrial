@@ -134,3 +134,10 @@ After introducing new patterns, update the relevant `docs/agent/*.md` file.
 - [Lessons learned](./docs/LESSONS_LEARNED.md) · [QA checklist](./QA_CHECKLIST.md) · [Security](./SECURITY.md)
 
 When conventions change, update the relevant `docs/agent/*.md` file and [CHANGELOG.md](./CHANGELOG.md) — keep this root file as the **session control plane**, not a dump of every rule.
+
+## Mandatory root-cause engineering policy
+
+- Never ship lazy/dirty fixes, fake success, no-op handlers, temporary stubs, swallowed errors or unverified schema-guessing fallbacks. Fix the canonical root cause and all affected callers.
+- Failed database reads are not empty data. Admin editors must not mount with editable defaults after read failure; public errors must not masquerade as empty catalogues.
+- Add positive and negative regression tests, security/permission assertions and traceable failure handling. Report separately what CI, browser and production actually verified.
+- Never run data migrations, R2 full-bucket inventory or database-writing reconciliation during startup, module import, GET or page rendering. Admin preview/dry-run followed by explicit protected apply is mandatory.

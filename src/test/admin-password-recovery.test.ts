@@ -40,7 +40,7 @@ describe('admin password recovery wiring', () => {
     expect(update).toContain('supabase.auth.updateUser({ password })')
     expect(update).toContain('password.length < 12')
     expect(update).toContain('password !== confirm')
-    expect(update).toContain('supabase.auth.signOut()')
+    expect(update).toContain("supabase.auth.signOut({ scope: 'local' })")
     expect(update).toContain("new URL('/admin/login?notice=password-updated'")
   })
 })

@@ -1,3 +1,11 @@
+## 2026-11-15 — Public release data contract
+
+- Removed duplicated error-string-based release schema fallbacks, routing homepage and discography through a canonical verified projection and distinguishing failed reads from genuine empty catalogues.
+
+## 2026-11-15 admin read failure states
+
+- Do not mount editable admin defaults or show fabricated zero metrics when Supabase reads fail. Look & Feel, Sections, Bio and Analytics share a typed error-state contract.
+
 ## Security hardening (2026-11-06)
 
 - Close public newsletter and analytics database write bypasses and route validated analytics writes through the server.
