@@ -141,3 +141,7 @@ When conventions change, update the relevant `docs/agent/*.md` file and [CHANGEL
 - Failed database reads are not empty data. Admin editors must not mount with editable defaults after read failure; public errors must not masquerade as empty catalogues.
 - Add positive and negative regression tests, security/permission assertions and traceable failure handling. Report separately what CI, browser and production actually verified.
 - Never run data migrations, R2 full-bucket inventory or database-writing reconciliation during startup, module import, GET or page rendering. Admin preview/dry-run followed by explicit protected apply is mandatory.
+
+## Enforced living documentation
+
+Every code/config/workflow PR must add a dated evidence entry in docs/QUALITY_JOURNAL.md and update the canonical owners defined in docs/living-docs.json. See docs/ARCHITECTURE_QUALITY.md for acceptance criteria and outstanding risks. Run npm run test:living-docs locally and require the GitHub Living docs gate; human review must validate factual claims and real tests. Do not bypass with meaningless Markdown.

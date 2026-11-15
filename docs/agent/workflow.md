@@ -110,3 +110,7 @@ When the user reports screenshot bugs:
 ```
 code complete → mandatory checks → docs/markdown update → merge + Production confirm → only then report done
 ```
+
+## Living architecture documentation gate (2026-11-15)
+
+The separate non-build GitHub job Living docs gate reads the PR diff against main and requires a new structured quality-journal entry and updated topic owner documents. Run npm run test:living-docs for negative-path gate tests. Human review validates correctness, and main branch protection must require this status. No automatic migrations or changes to existing deploy policy.
